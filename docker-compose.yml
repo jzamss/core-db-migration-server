@@ -1,0 +1,40 @@
+version: "3"
+services:
+  cloud-redis:
+    image: redis:5.0.6
+    container_name: migration-redis
+    restart: always
+    logging: 
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "10m"
+    volumes:
+      - /home/rameses/temp/db-migration-redis:/data
+    expose: 
+      - 6379
+    ports:
+      - "6379:6379"
+
+  # db-migration-server:
+  #   image: ramesesinc/db-migration-server:0.0.1
+  #   container_name: db-migration-server
+  #   restart: always
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-file: "5"
+  #       max-size: 10m
+  #   links:
+  #     - migration-redis
+  #   environment:
+  #     - REDIS_URL=redis://migration-redis
+  #   depends_on:
+  #     - migration-redis        
+  #   environment:
+  #     TZ: "Asia/Manila"
+  #   ports:
+  #     - "5000:5000"
+  #   volumes:
+  #     - ../waterworks2/migrations:/home/rameses/dbm-root/waterworks2/migrations
+    
