@@ -1,0 +1,17 @@
+.label-container {
+  display: flex;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.label-caption {
+  font-size: medium;
+  width: 100px;
+}
+
+.label-value {
+  font-size: medium;
+  border-bottom: 1px solid lightgray;
+  padding-left: 5px;
+  width: 200px;
+}
