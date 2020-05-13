@@ -8,6 +8,7 @@ const ModuleInfo = ({ module }) => {
     <div className="module-info-container">
       <Label caption="Name:" value={module.name} />
       <Label caption="Database:" value={module.dbname} />
+      <Label caption="Last File:" value={module.lastfileid} />
       <Label caption="Config:">
         <span>{conf}</span>
       </Label>

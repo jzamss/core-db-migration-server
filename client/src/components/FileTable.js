@@ -27,10 +27,11 @@ const useStyles = makeStyles({
 });
 
 const FileTable = ({ files }) => {
+  console.log("filetable files", files)
   const classes = useStyles();
 
   return (
-    <div style={{ paddingTop: 20 }}>
+    <div style={{ paddingTop: 10 }}>
       <TableContainer component={Paper}>
         <Table
           className={classes.table}

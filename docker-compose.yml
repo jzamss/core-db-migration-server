@@ -10,7 +10,7 @@ services:
         max-file: "5"
         max-size: "10m"
     volumes:
-      - /home/rameses/temp/migration-redis:/data
+      - /home/rameses/temp/dbmigration-redis:/data
     expose: 
       - 6379
     ports:

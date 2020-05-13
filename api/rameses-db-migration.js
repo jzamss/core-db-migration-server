@@ -1,12 +1,13 @@
 const path = require("path");
 const { promisify } = require("util");
 const redis = require("redis");
-const cache = redis.createClient(global.gConfig.redis_url);
 
+const cache = redis.createClient(global.gConfig.redis_url);
 const getAsync = promisify(cache.get).bind(cache);
 const setAsync = promisify(cache.set).bind(cache);
 const keysAsync = promisify(cache.keys).bind(cache);
 
+const { getHandler } = require("./rameses-migration-handlers");
 const { log, findDirs, findFiles } = require("./rameses-util");
 
 const readData = async (key) => {
@@ -37,13 +38,26 @@ const getModuleKey = (module) => {
   return MODULE_KEY_PREFIX + module.name;
 };
 
-const loadModules = async () => {
+const buildModules = async () => {
   const dbmRoot = global.gConfig.dbm_root;
   const dirs = findDirs(dbmRoot);
   const modules = [];
   for (let i = 0; i < dirs.length; i++) {
     const dir = dirs[i];
-    const module = { name: dir.file, dbname: dir.file };
+    const module = {
+      name: dir.file,
+      dbname: dir.file,
+      conf: {
+        mysql: {
+          host: "localhost",
+          port: 3306,
+          user: "root",
+          password: "1234",
+          database: "",
+        }
+      },
+      lastfileid: null,
+    };
     await saveModule(module);
     modules.push(module);
   }
@@ -60,10 +74,10 @@ const saveModule = async (newModule) => {
   loadModuleFiles(module);
 };
 
-const updateModule = async module => {
+const updateModule = async (module) => {
   await saveData(getModuleKey(module), module);
   return module;
-}
+};
 
 const getModules = async () => {
   const modules = [];
@@ -78,18 +92,22 @@ const getModules = async () => {
     if (aname < b.name) return -1;
     if (aname > b.name) return 1;
     return 0;
-  })
+  });
   return modules;
 };
 
 const getModule = async (moduleName) => {
-  const jsonModule = await getAsync(moduleName);
-  return JSON.parse(jsonModule);
+  const jsonModule = await getAsync(getModuleKey({ name: moduleName }));
+  let module;
+  if (jsonModule) {
+    module = JSON.parse(jsonModule);
+  }
+  return module;
 };
 
 const isFileSaved = async (fileKey) => {
   const file = await readData(fileKey);
-  return file ? true: false;
+  return file ? true : false;
 };
 
 const saveModuleFiles = async (module, files) => {
@@ -112,6 +130,11 @@ const saveModuleFiles = async (module, files) => {
   }
 };
 
+const updateFile = async (module, file) => {
+  const modFileKey = `${module.name}:${file.filename}`;
+  await saveData(modFileKey, file);
+};
+
 const loadModuleFiles = async (module) => {
   const dbmRoot = global.gConfig.dbm_root;
   const files = findFiles(path.join(dbmRoot, module.name));
@@ -124,14 +147,58 @@ const getModuleFiles = async (moduleName) => {
   for (let i = 0; i < keys.length; i++) {
     files.push(await readData(keys[i]));
   }
+  files.sort((a, b) => {
+    const afile = a.filename;
+    const bfile = b.filename;
+    if (afile < bfile) return -1;
+    if (afile > bfile) return 1;
+    return 0;
+  });
   return files;
 };
 
+const buildModule = async (moduleName) => {
+  log.info(`Building module ${moduleName}`);
+  const module = await getModule(moduleName);
+  if (!module) {
+    throw `Module ${moduleName} is not registered. Try adding or reloading migration service.`;
+  }
+  const files = await getModuleFiles(moduleName);
+  const unprocessedFiles = files.filter((file) => file.state === 0);
+  for (let i = 0; i < unprocessedFiles.length; i++) {
+    try {
+      const file = unprocessedFiles[i];
+      const handler = await getHandler(module, file.filename);
+      log.info(`Processing file ${file.filename}`);
+      await handler.execute(module, file, async (status, file) => {
+        if (status === "OK") {
+          module.lastfileid = file.filename;
+          await updateModule(module);
+        } else if (status === "DONE") {
+          module.lastfileid = file.filename;
+          await updateModule(module);
+          file.state = 1;
+          await updateFile(module, file);
+        } else {
+          file.errors = status.sqlMessage;
+          file.state = 1;
+          updateFile(module, file);
+        }
+      });
+      await handler.close();
+    } catch (err) {
+      log.err(err);
+    }
+  }
+};
+
 module.exports = {
+  buildModule,
+  buildModules,
   getModule,
   getModules,
   getModuleFiles,
-  loadModules,
   loadModuleFiles,
+  updateFile,
   updateModule,
 };

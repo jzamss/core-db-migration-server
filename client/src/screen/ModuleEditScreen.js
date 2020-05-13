@@ -103,8 +103,7 @@ const ModuleEditScreen = (props) => {
               aria-label="minimum height"
               label="Configuration"
               multiline
-              rows={5}
-              rowsMax={5}
+              rows={15}
               value={confStr}
               onChange={(event) => inputChangeHandler(event)}
             />

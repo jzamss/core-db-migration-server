@@ -5,7 +5,7 @@ const log = {
 }
 
 export const getModules = async () => {
-  const res = await fetch("/migration/modules")
+  const res = await fetch("/dbmigrations/modules")
   if (res.ok) {
     return res.json();
   } else {
@@ -16,7 +16,7 @@ export const getModules = async () => {
 };
 
 export const getModuleFiles = async (module) => {
-  const res = await fetch(`/migration/modules/${module.name}`)
+  const res = await fetch(`/dbmigrations/modules/${module.name}`)
   if (res.ok) {
     const files = await res.json();
     for (let i = 0; i < files.length; i++) {
@@ -31,7 +31,7 @@ export const getModuleFiles = async (module) => {
       if (astr < bstr) return -1;
       return 0;
     })
-
+    console.log("getModuleFiles files", files);
     return files;
   } else {
     const msg = `Unable to load module ${module.name} files.`;
@@ -42,7 +42,7 @@ export const getModuleFiles = async (module) => {
 
 
 export const saveModule = async module => {
-  const res = await fetch(`/migration/modules/${module.name}`, {
+  const res = await fetch(`/dbmigrations/modules/${module.name}`, {
     method: 'POST',
     mode: 'cors',
     cache: 'no-cache',
@@ -57,6 +57,44 @@ export const saveModule = async module => {
     return module;
   } else {
     const msg = `Unable to save module ${module.name}.`;
+    log.err(`Status: ${res.status}. ${msg}`);
+    throw msg;
+  }
+}
+
+export const buildModules = async () => {
+  const res = await fetch(`/dbmigrations/build`, {
+    method: 'POST',
+    mode: 'cors',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+
+  if (res.ok) {
+    return await getModules();
+  } else {
+    const msg = `Unable to save module ${module.name}.`;
+    log.err(`Status: ${res.status}. ${msg}`);
+    throw msg;
+  }
+}
+
+export const buildModule = async (module) => {
+  const res = await fetch(`/dbmigrations/build/${module.name}`, {
+    method: 'POST',
+    mode: 'cors',
+    cache: 'no-cache',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  });
+
+  if (!res.ok) {
+    const msg = `Error deploying scripts for ${module.name}.`;
     log.err(`Status: ${res.status}. ${msg}`);
     throw msg;
   }
