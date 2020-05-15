@@ -8,7 +8,8 @@
       "dbm_root": "/home/rameses/dbm-root"
   },
   "testing": {
-      "config_id": "testing"
+      "config_id": "testing",
+      "dbm_root": "/home/rameses/dbm-root/test"
   },
   "staging": {
       "config_id": "staging"

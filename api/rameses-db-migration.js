@@ -8,7 +8,11 @@ const setAsync = promisify(cache.set).bind(cache);
 const keysAsync = promisify(cache.keys).bind(cache);
 
 const { getHandler } = require("./rameses-migration-handlers");
-const { log, findDirs, findFiles } = require("./rameses-util");
+const { log, scanFiles } = require("./rameses-util");
+
+const closeCache = () => {
+  cache.end();
+}
 
 const readData = async (key) => {
   let data = await getAsync(key);
@@ -192,6 +196,62 @@ const buildModule = async (moduleName) => {
   }
 };
 
+const initModule = (parent, dir, file) => {
+  return {
+    dir,
+    file: file.name,
+    fileId: parent ? `${parent.file}.${file.name}` : file.name,
+    files: [],
+    modules: [],
+  }
+}
+
+const initFile = (dir, file) => {
+  return { file: file.name, dir }
+}
+
+const scanModuleFiles = async (dir, parent) => {
+  const files = await scanFiles(dir);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.isDirectory() ) {
+      let parentDir;
+      if (/migrations/i.test(file.name)) {
+        parentDir = path.join(dir, "migrations");
+        await scanModuleFiles(parentDir, parent);
+      } else {
+        const module = initModule(parent, dir, file);
+        parent.modules.push(module);
+        parentDir = path.join(dir, file.name)
+        await scanModuleFiles(parentDir, module);
+      }
+    } else {
+      parent.files.push(initFile(dir, file));
+    }
+  };
+}
+
+const scanModules = async (dir) => {
+  const modules = [];
+  const files = await scanFiles(dir);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.isDirectory()) {
+      const module = initModule(null, dir, file);
+      modules.push(module);
+      const parentDir = path.join(dir, file.name);
+      await scanModuleFiles(parentDir, module);
+    } else {
+      module.files.push({
+        dir: dir,
+        file: file.name,
+      })
+    }
+  };
+  return modules;
+};
+
+
 module.exports = {
   buildModule,
   buildModules,
@@ -201,4 +261,6 @@ module.exports = {
   loadModuleFiles,
   updateFile,
   updateModule,
+  scanModules,
+  closeCache
 };

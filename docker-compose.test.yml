@@ -1,0 +1,5 @@
+version: "3"
+services:
+  cloud-redis:
+    volumes:
+      - /home/rameses/temp/test/dbmigration-redis:/data
