@@ -17,13 +17,13 @@ import { CircularProgress } from "@material-ui/core";
 const ModuleScreen = (props) => {
   const initialModule = useLocation().state.module;
   const [module, setModule] = useState(initialModule);
-  const [files, setFiles] = useState([]);
+  const [moduleFiles, setModuleFiles] = useState([]);
   const [deploying, setDeploying] = useState(false);
   const [error, setError] = useState();
 
   const loadFiles = useCallback(async () => {
     const moduleFiles = await api.getModuleFiles(module);
-    setFiles(moduleFiles);
+    setModuleFiles(moduleFiles);
   }, [module]);
 
   useEffect(() => {
@@ -59,7 +59,14 @@ const ModuleScreen = (props) => {
     });
   };
 
-  const hasUnprocessedFile = files.find((file) => file.state === 0);
+  let hasUnprocessedFile = false;
+  moduleFiles.forEach(moduleFile => {
+    moduleFile.files.forEach(file => {
+      if (file.state === 0) {
+        hasUnprocessedFile = true;
+      }
+    })
+  })
 
   return (
     <div>
@@ -89,7 +96,7 @@ const ModuleScreen = (props) => {
           </div>
         )}
         <FileTable
-          files={files}
+          files={moduleFiles}
           onDeploy={deployFilesHandler}
           deploying={deploying}
         />
