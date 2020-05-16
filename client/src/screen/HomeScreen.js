@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import IconButton from "@material-ui/core/IconButton";
 import LinearProgress from "@material-ui/core/LinearProgress";
 import RefreshIcon from "@material-ui/icons/Refresh";

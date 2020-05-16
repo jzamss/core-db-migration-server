@@ -1,0 +1,19 @@
+cache key Specs:
+
+Module 
+==========================
+  - prefix: MODULE
+  - format: ${prefix}:${fileId}
+  - example: 
+      MODULE:waterworks
+      MODULE:waterworks.etracs
+
+
+File
+==========================
+  - prefix: FILE
+  - format: ${prefix}:${module.fileId}:${file}
+  - example: 
+        FILE:waterworks:1-init.mysql
+        FILE:waterworks.etracs:1-init.mysql
+

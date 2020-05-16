@@ -14,9 +14,9 @@ router.post("/build", async (req, res) => {
 });
 
 router.post("/build/:moduleId", async (req, res) => {
-  const { moduleId } = req.params;
+  const { module } = req.body;
   try {
-    await api.buildModule(moduleId);
+    await api.buildModule(module);
     res.json({status: 'ok'});
   } catch (error) {
     res.json({status: "error", error})
@@ -31,7 +31,8 @@ router.get("/modules", async (req, res) => {
 router.get("/modules/:moduleId", async (req, res) => {
   try {
     const { moduleId } = req.params;
-    const files = await api.getModuleFiles(moduleId);
+    const module = await api.getModule(moduleId)
+    const files = await api.getModuleFiles(module);
     res.json(files);
   } catch (err) {
     res.status(400).send({message: err});

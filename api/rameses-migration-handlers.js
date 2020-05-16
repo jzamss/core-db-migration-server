@@ -6,19 +6,20 @@ const mysql = require("mysql");
 =====================================*/
 const mysqlHandler = (function () {
   this.pool;
-  this.conf = {
+  this.conf = {};
+  this.defaultConf = {
     connectionLimit: 10,
     host: "localhost",
-    port: 3306,
     user: "root",
     password: "1234",
-    database: "etracs255_talibon",
+    database: "",
   };
   
   const accept = async (module, file) => {
     if (/.+\.mysql$/i.test(file)) {
-      const userConf = module.conf.mysql || {};
-      this.conf = {...this.conf, ...userConf};
+      const moduleConf = module.conf[file.submodule || module.name] || {};
+      const userConf = moduleConf["mysql"] || {};
+      this.conf = {...this.defaultConf, ...userConf};
       await createPool();
       return true;
     }
@@ -72,7 +73,7 @@ const mysqlHandler = (function () {
           await callback("OK", file);
         } catch (err) {
           await callback(err, file);
-          return;
+          throw err;
         }
       }
     }

@@ -18,21 +18,7 @@ export const getModules = async () => {
 export const getModuleFiles = async (module) => {
   const res = await fetch(`/dbmigrations/modules/${module.name}`)
   if (res.ok) {
-    const files = await res.json();
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      file.dtfiled = new Date(file.dtfiled);
-    }
-
-    files.sort((a, b) => {
-      const astr = a.filename.toLowerCase();
-      const bstr = b.filename.toLowerCase();
-      if (astr > bstr) return 1;
-      if (astr < bstr) return -1;
-      return 0;
-    })
-    console.log("getModuleFiles files", files);
-    return files;
+    return await res.json();
   } else {
     const msg = `Unable to load module ${module.name} files.`;
     log.err(`Status: ${res.status}. ${msg}`);
@@ -91,6 +77,7 @@ export const buildModule = async (module) => {
     headers: {
       'Content-Type': 'application/json'
     },
+    body: JSON.stringify({module}),
   });
 
   if (!res.ok) {

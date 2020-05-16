@@ -18,6 +18,11 @@ app.use(express.static(path.join(__dirname, "client/build")));
 const dbmigrations = require("./routes/dbmigrations");
 app.use("/dbmigrations", dbmigrations);
 
+const db = require("./api/rameses-db-migration");
+db.loadModules()
+  .then(() => console.log("Modules loaded successfully."))
+  .catch((err) => console.log(err));
+
 http.listen(port, (err) => {
   if (err) {
     console.log(err);
