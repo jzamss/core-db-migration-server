@@ -1,6 +1,7 @@
 const fs = require("fs");
 const mysql = require("mysql");
 const mssql = require("mssql");
+const fetch = require("node-fetch");
 
 /*=====================================
 * MYSQL Handler
@@ -73,10 +74,10 @@ const mysqlHandler = (function () {
       if (sql.length > 0) {
         try {
           await query(sql);
-          await callback("OK", file);
-        } catch (err) {
-          await callback(err, file);
-          throw err;
+          await callback({status: "OK"}, file);
+        } catch (error) {
+          await callback({status: "ERROR", error: error.sqlMessage}, file);
+          throw error;
         }
       }
     }
@@ -141,10 +142,10 @@ const mssqlHandler = (function () {
       if (sql.length > 0) {
         try {
           await query(sql);
-          await callback("OK", file);
-        } catch (err) {
-          await callback(err, file);
-          throw err;
+          await callback({status: "OK"}, file);
+        } catch (error) {
+          await callback({status: "ERROR", error}, file);
+          throw error;
         }
       }
     }
@@ -159,7 +160,82 @@ const mssqlHandler = (function () {
   };
 })();
 
-const handlers = [mysqlHandler, mssqlHandler];
+/*=====================================
+* Service Handler
+=====================================*/
+const serviceHandler = (function () {
+  const accept = async (module, file) => {
+    if (/.+\.svc$/i.test(file.filename)) {
+      await createConnection(module, file);
+      return true;
+    }
+    return false;
+  };
+
+  const createConnection = async (module, file) => {
+    const defaultConf = {
+      host: "localhost:8070",
+      cluster: "osiris3",
+      context: "etracs25",
+    };
+
+    const moduleConf = module.conf[file.submodule || module.name] || {};
+    const userConf = moduleConf["svc"] || {};
+    const conf = { ...defaultConf, ...userConf };
+    const { host, cluster, context, service } = conf;
+
+    this.url = `http://${host}/${cluster}/json/${context}`;
+    console.log(`[INFO] Service connection initialized`);
+    console.log(`[INFO]    ${this.url}`);
+  };
+
+  const close = async () => {
+    //
+  };
+
+  const invokeService = async (service) => {
+    const serviceUrl = `${this.url}/${service}`;
+    const res = await fetch(serviceUrl);
+    if (res.ok) {
+      try {
+        const data = await res.json();
+        if (data.status !== 'OK') {
+          throw `${data.error}`;
+        }
+      } catch (err) {
+        throw `Error executing service. ${err}`;
+      }
+    } else {
+      throw res.statusText;
+    }
+  };
+
+  const execute = async (module, file, callback) => {
+    const serviceFile = fs.readFileSync(file.file).toString();
+    const services = serviceFile.split(/;$/gim);
+    for (let i = 0; i < services.length; i++) {
+      const service = services[i].trim();
+      if (service.length > 0) {
+        try {
+          await invokeService(service);
+          await callback({status: "OK"}, file);
+        } catch (error) {
+          await callback({status: "ERROR", error }, file);
+          throw error;
+        }
+      }
+    }
+    await callback("DONE", file);
+  };
+
+  return {
+    accept,
+    close,
+    execute,
+  };
+})();
+
+const handlers = [mysqlHandler, mssqlHandler, serviceHandler];
 
 const getHandler = async (module, file) => {
   for (let i = 0; i < handlers.length; i++) {

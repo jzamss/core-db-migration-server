@@ -19,6 +19,7 @@
     "lodash": "^4.17.15",
     "mssql": "^6.2.0",
     "mysql": "github:mysqljs/mysql",
+    "node-fetch": "^2.6.0",
     "redis": "^3.0.2"
   },
   "devDependencies": {

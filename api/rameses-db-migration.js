@@ -3,6 +3,11 @@ const { promisify } = require("util");
 const redis = require("redis");
 
 const cache = redis.createClient(global.gConfig.redis_url);
+
+cache.on("error", err => {
+  log.err(`Redis encountered error: ${err}`);
+});
+
 const getAsync = promisify(cache.get).bind(cache);
 const setAsync = promisify(cache.set).bind(cache);
 const keysAsync = promisify(cache.keys).bind(cache);
@@ -75,6 +80,14 @@ const getMsSqlConf = dbname => {
   return conf;
 }
 
+const getServiceConf = dbname => {
+  return {
+    host: "localhost:8070",
+    cluster: "osiris3",
+    context: "etracs25",
+  }
+}
+
 const createModule = async ({ file, fileid, dir }) => {
   const module = {
     name: file,
@@ -86,6 +99,7 @@ const createModule = async ({ file, fileid, dir }) => {
       [file]: {
         mysql: getMysqlConf(),
         mssql: getMsSqlConf(),
+        svc: getServiceConf(),
       },
     },
   };
@@ -99,6 +113,7 @@ const registerSubModuleConf = async (module, submod) => {
     subModuleConf = {
       mysql: getMysqlConf(submod.file),
       mssql: getMsSqlConf(submod.file),
+      svc: getServiceConf(),
     };
     module.conf[submod.file] = subModuleConf;
     updateModule(module);
@@ -293,7 +308,7 @@ const buildModule = async (module) => {
           file.state = 1;
           await updateFile(module, file);
         } else {
-          file.errors = status.sqlMessage;
+          file.errors = status.error;
           file.state = 1;
           updateFile(module, file);
         }
