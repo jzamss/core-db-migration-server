@@ -98,15 +98,18 @@ const getDefaultConf = (extName, dbname) => {
 }
 
 const createModule = async ({ file, fileid, dir }) => {
-  const module = {
-    name: file,
-    dbname: file,
-    dir,
-    fileid,
-    lastfileid: null,
-    conf: {},
-  };
-  await saveModule(module);
+  let module = await readData(getModuleKey({fileid}));
+  if (!module) {
+    module = {
+      name: file,
+      dbname: file,
+      dir,
+      fileid,
+      lastfileid: null,
+      conf: {},
+    };
+    await saveModule(module);
+  }
   return module;
 };
 
@@ -293,7 +296,7 @@ const getModuleFiles = async (module) => {
 
 const buildModules = async () => {
   const modules = [];
-  const keys = keysAsync(`${MODULE_KEY_PREFIX}:*`);
+  const keys = await keysAsync(`${MODULE_KEY_PREFIX}:*`);
   for (let i = 0; i < keys.length; i++) {
     modules.push(await readData(keys[i]));
   }
