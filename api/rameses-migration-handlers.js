@@ -3,6 +3,18 @@ const mysql = require("mysql");
 const mssql = require("mssql");
 const fetch = require("node-fetch");
 
+
+const  getUserConf = (module, file, confType) => {
+  let moduleConf;
+  if (file.submodule) {
+    moduleConf = module.conf[file.submodule] || {};
+  } else {
+    moduleConf = module.conf || {};
+  }
+  return moduleConf[confType] || {};
+};
+
+
 /*=====================================
 * MYSQL Handler
 =====================================*/
@@ -27,8 +39,7 @@ const mysqlHandler = (function () {
       database: module.dbname,
     };
 
-    const moduleConf = module.conf[file.submodule || module.name] || {};
-    const userConf = moduleConf["mysql"] || {};
+    const userConf = getUserConf(module, file, "mysql");
     const conf = { ...defaultConf, ...userConf };
 
     this.pool = mysql.createPool({
@@ -71,7 +82,7 @@ const mysqlHandler = (function () {
     const sqls = sqlFile.split(/;$/gim);
     for (let i = 0; i < sqls.length; i++) {
       const sql = sqls[i].trim();
-      if (sql.length > 0) {
+      if (sql.length > 0 && !sql.startsWith("#")) {
         try {
           await query(sql);
           await callback({status: "OK"}, file);
@@ -114,11 +125,10 @@ const mssqlHandler = (function () {
       enableArithAbort: true,
     };
 
-    const moduleConf = module.conf[file.submodule || module.name] || {};
-    const userConf = moduleConf["mssql"] || {};
+    const userConf = getUserConf(module, file, "mssql");
     const conf = { ...defaultConf, ...userConf };
-
     const { host, port, user, password, database } = conf;
+
     const connectionStr = `mssql://${user}:${password}@${host}:${port}/${database}`;
     await mssql.connect(connectionStr);
     console.log(`[INFO] MSSQL Server connection successfully established`);
@@ -139,7 +149,7 @@ const mssqlHandler = (function () {
     const sqls = sqlFile.split(/;$/gim);
     for (let i = 0; i < sqls.length; i++) {
       const sql = sqls[i].trim();
-      if (sql.length > 0) {
+      if (sql.length > 0 && !sql.startsWith('#')) {
         try {
           await query(sql);
           await callback({status: "OK"}, file);
@@ -179,8 +189,7 @@ const serviceHandler = (function () {
       context: "etracs25",
     };
 
-    const moduleConf = module.conf[file.submodule || module.name] || {};
-    const userConf = moduleConf["svc"] || {};
+    const userConf = getUserConf(module, file, "svc");
     const conf = { ...defaultConf, ...userConf };
     const { host, cluster, context, service } = conf;
 
@@ -215,7 +224,7 @@ const serviceHandler = (function () {
     const services = serviceFile.split(/;$/gim);
     for (let i = 0; i < services.length; i++) {
       const service = services[i].trim();
-      if (service.length > 0) {
+      if (service.length > 0 && !service.startsWith("#")) {
         try {
           await invokeService(service);
           await callback({status: "OK"}, file);

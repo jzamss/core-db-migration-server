@@ -88,6 +88,15 @@ const getServiceConf = dbname => {
   }
 }
 
+const getDefaultConf = (extName, dbname) => {
+  const confs = {
+    mysql: getMysqlConf(dbname),
+    mssql: getMsSqlConf(dbname),
+    svc: getServiceConf(dbname),
+  }
+  return confs[extName];
+}
+
 const createModule = async ({ file, fileid, dir }) => {
   const module = {
     name: file,
@@ -95,28 +104,35 @@ const createModule = async ({ file, fileid, dir }) => {
     dir,
     fileid,
     lastfileid: null,
-    conf: {
-      [file]: {
-        mysql: getMysqlConf(),
-        mssql: getMsSqlConf(),
-        svc: getServiceConf(),
-      },
-    },
+    conf: {},
   };
   await saveModule(module);
   return module;
 };
 
-const registerSubModuleConf = async (module, submod) => {
+const registerSubModuleConf = async (module, submod, extName) => {
   let subModuleConf = module.conf[submod.file];
   if (!subModuleConf) {
-    subModuleConf = {
-      mysql: getMysqlConf(submod.file),
-      mssql: getMsSqlConf(submod.file),
-      svc: getServiceConf(),
-    };
+    subModuleConf = {};
     module.conf[submod.file] = subModuleConf;
+  }
+  let conf = subModuleConf[extName];
+  if ( !conf ) {
+    conf = getDefaultConf(extName, submod.file);
+    subModuleConf[extName] = conf;
     updateModule(module);
+  }
+};
+
+const registerConf = async (module, submod, file) => {
+  const extName = path.extname(file.file).replace(".", "");
+  if (submod.file) {
+    await registerSubModuleConf(module, submod, extName);
+  } else {
+    if (!module.conf[extName]) {
+      module.conf[extName] = getDefaultConf(extName, module.name);
+      await updateModule(module);
+    }
   }
 };
 
@@ -124,7 +140,6 @@ const loadModuleFiles = async (module, moduleFile, submodule = {}) => {
   await saveModuleFiles(module, submodule, moduleFile.files);
   for (let i = 0; i < moduleFile.modules.length; i++) {
     const submod = moduleFile.modules[i];
-    await registerSubModuleConf(module, submod);
     await loadModuleFiles(module, moduleFile.modules[i], submod);
   }
 };
@@ -176,6 +191,9 @@ const createModuleFile = async (module, submodule, file, fileKey) => {
 const saveModuleFiles = async (module, submodule, files) => {
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
+    
+    await registerConf(module, submodule, file);
+
     const modFileKey = getModuleFileKey(module, {
       filename: file.file,
       submodule: submodule.file,
@@ -262,13 +280,14 @@ const getModuleFiles = async (module) => {
   sort(mainFiles, "filename");
   resultList.push({name: module.name, files: mainFiles});
 
-  for (let key in subfiles) {
+  const subKeys = Object.keys(subfiles).sort();
+  subKeys.forEach(key => {
     if (subfiles.hasOwnProperty(key)) {
       const submodules = subfiles[key];
       sort(submodules, "filename");
       resultList.push({name: key, files: submodules})
     }
-  }
+  });
   return resultList;
 };
 
