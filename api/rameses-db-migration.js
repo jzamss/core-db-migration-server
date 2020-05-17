@@ -70,7 +70,7 @@ const getMysqlConf = dbname => {
 
 const getMsSqlConf = dbname => {
   const conf =  {
-    host: "192.168.1.9",
+    host: "localhost",
     user: "sa",
     password: "12345",
   }
