@@ -51,25 +51,41 @@ const getModuleFileKey = (module, file) => {
   return `${FILE_KEY_PREFIX}:${module.fileid}:${file.filename}`;
 };
 
-const getMysqlConf = name => {
-  return {
+const getMysqlConf = dbname => {
+  const conf = {
     host: "localhost",
-    port: 3306,
     user: "root",
     password: "1234",
-    database: name,
   }
+  if (dbname) {
+    conf.database = dbname;
+  }
+  return conf;
+}
+
+const getMsSqlConf = dbname => {
+  const conf =  {
+    host: "192.168.1.9",
+    user: "sa",
+    password: "12345",
+  }
+  if (dbname) {
+    conf.database = dbname;
+  }
+  return conf;
 }
 
 const createModule = async ({ file, fileid, dir }) => {
   const module = {
     name: file,
+    dbname: file,
     dir,
     fileid,
     lastfileid: null,
     conf: {
       [file]: {
-        mysql: getMysqlConf(file),
+        mysql: getMysqlConf(),
+        mssql: getMsSqlConf(),
       },
     },
   };
@@ -81,7 +97,8 @@ const registerSubModuleConf = async (module, submod) => {
   let subModuleConf = module.conf[submod.file];
   if (!subModuleConf) {
     subModuleConf = {
-      mysql: getMysqlConf(submod.file)
+      mysql: getMysqlConf(submod.file),
+      mssql: getMsSqlConf(submod.file),
     };
     module.conf[submod.file] = subModuleConf;
     updateModule(module);

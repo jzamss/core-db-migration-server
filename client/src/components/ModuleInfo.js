@@ -7,9 +7,9 @@ const ModuleInfo = ({ module }) => {
   return (
     <div className="module-info-container">
       <Label caption="Name:" value={module.name} />
-      {/* <Label caption="Database:" value={module.dbname} /> */}
+      <Label caption="Database:" value={module.dbname} />
       {/* <Label caption="Last File:" value={module.lastfileid} /> */}
-      <Label caption="Config:">
+      <Label caption="Config (json) :">
         <span>{conf}</span>
       </Label>
     </div>

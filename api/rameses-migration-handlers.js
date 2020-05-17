@@ -1,44 +1,47 @@
 const fs = require("fs");
 const mysql = require("mysql");
+const mssql = require("mssql");
 
 /*=====================================
 * MYSQL Handler
 =====================================*/
 const mysqlHandler = (function () {
   this.pool;
-  this.conf = {};
-  this.defaultConf = {
-    connectionLimit: 10,
-    host: "localhost",
-    user: "root",
-    password: "1234",
-    database: "",
-  };
-  
+
   const accept = async (module, file) => {
     if (/.+\.mysql$/i.test(file.filename)) {
-      const moduleConf = module.conf[file.submodule || module.name] || {};
-      const userConf = moduleConf["mysql"] || {};
-      this.conf = {...this.defaultConf, ...userConf};
-      await createPool();
+      await createPool(module, file);
       return true;
     }
     return false;
   };
 
-  const createPool = async () => {
+  const createPool = async (module, file) => {
+    const defaultConf = {
+      connectionLimit: 10,
+      host: "localhost",
+      port: 3306,
+      user: "root",
+      password: "1234",
+      database: module.dbname,
+    };
+
+    const moduleConf = module.conf[file.submodule || module.name] || {};
+    const userConf = moduleConf["mysql"] || {};
+    const conf = { ...defaultConf, ...userConf };
+
     this.pool = mysql.createPool({
-      connectionLimit: this.conf.poolSize,
-      host: this.conf.host,
-      port: this.conf.port,
-      user: this.conf.user,
-      password: this.conf.password,
-      database: this.conf.database,
+      connectionLimit: conf.poolSize,
+      host: conf.host,
+      port: conf.port,
+      user: conf.user,
+      password: conf.password,
+      database: conf.database,
     });
   };
 
   const close = async () => {
-    pool.end((err) => {
+    this.pool.end((err) => {
       if (err) {
         console.log("Error closing connecton pool. ", err.stack);
         return;
@@ -59,12 +62,12 @@ const mysqlHandler = (function () {
           }
         }
       );
-    })
+    });
   };
 
   const execute = async (module, file, callback) => {
     const sqlFile = fs.readFileSync(file.file).toString();
-    const sqls = sqlFile.split(/;$/igm);
+    const sqls = sqlFile.split(/;$/gim);
     for (let i = 0; i < sqls.length; i++) {
       const sql = sqls[i].trim();
       if (sql.length > 0) {
@@ -78,7 +81,7 @@ const mysqlHandler = (function () {
       }
     }
     await callback("DONE", file);
-  }
+  };
 
   return {
     accept,
@@ -88,8 +91,75 @@ const mysqlHandler = (function () {
   };
 })();
 
+/*=====================================
+* MSSQL Handler
+=====================================*/
+const mssqlHandler = (function () {
+  const accept = async (module, file) => {
+    if (/.+\.mssql$/i.test(file.filename)) {
+      await createConnection(module, file);
+      return true;
+    }
+    return false;
+  };
 
-const handlers = [mysqlHandler];
+  const createConnection = async (module, file) => {
+    const defaultConf = {
+      host: "localhost",
+      port: 1433,
+      user: "sa",
+      password: "12345",
+      database: module.dbname,
+      enableArithAbort: true,
+    };
+
+    const moduleConf = module.conf[file.submodule || module.name] || {};
+    const userConf = moduleConf["mssql"] || {};
+    const conf = { ...defaultConf, ...userConf };
+
+    const { host, port, user, password, database } = conf;
+    const connectionStr = `mssql://${user}:${password}@${host}:${port}/${database}`;
+    await mssql.connect(connectionStr);
+    console.log(`[INFO] MSSQL Server connection successfully established`);
+  };
+
+  const close = async () => {
+    //
+  };
+
+  const query = async (sql, values = []) => {
+    const result = await mssql.query(sql);
+    const { recordsets } = result;
+    return [recordsets, []];
+  };
+
+  const execute = async (module, file, callback) => {
+    const sqlFile = fs.readFileSync(file.file).toString();
+    const sqls = sqlFile.split(/;$/gim);
+    for (let i = 0; i < sqls.length; i++) {
+      const sql = sqls[i].trim();
+      if (sql.length > 0) {
+        try {
+          await query(sql);
+          await callback("OK", file);
+        } catch (err) {
+          await callback(err, file);
+          throw err;
+        }
+      }
+    }
+    await callback("DONE", file);
+  };
+
+  return {
+    accept,
+    close,
+    execute,
+    query,
+  };
+})();
+
+const handlers = [mysqlHandler, mssqlHandler];
 
 const getHandler = async (module, file) => {
   for (let i = 0; i < handlers.length; i++) {
@@ -101,7 +171,6 @@ const getHandler = async (module, file) => {
   }
   throw `Handler for file ${file} is not registered.`;
 };
-
 
 module.exports = {
   getHandler,
