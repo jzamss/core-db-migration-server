@@ -1,15 +1,18 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import Button from "@material-ui/core/Button";
+import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
 import EditIcon from "@material-ui/icons/Edit";
 
-import Header from "../components/Header";
+import Page from "../components/Page";
+import Action from "../components/Action";
 import Content from "../components/Content";
-import ModuleInfo from "../components/ModuleInfo";
-import FileTable from "../components/FileTable";
 import Separator from "../components/Separator";
 import Error from "../components/Error";
+
+import ModuleInfo from "./components/ModuleInfo";
+import ModuleFileTable from "./components/ModuleFileTable";
 
 import * as api from "../api";
 import { CircularProgress } from "@material-ui/core";
@@ -59,49 +62,54 @@ const ModuleScreen = (props) => {
     });
   };
 
+  const ModuleActions = (
+    <Toolbar variant="dense">
+      <Action color="primary" onClick={editHandler} Icon={EditIcon} />
+    </Toolbar>
+  );
+
   let hasUnprocessedFile = false;
-  moduleFiles.forEach(moduleFile => {
-    moduleFile.files.forEach(file => {
+  moduleFiles.forEach((moduleFile) => {
+    moduleFile.files.forEach((file) => {
       if (file.state === 0) {
         hasUnprocessedFile = true;
       }
-    })
-  })
+    });
+  });
+
+  let fileActions;
+  if (hasUnprocessedFile) {
+    fileActions = (
+      <Toolbar>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={deployFilesHandler}
+          disabled={deploying}
+        >
+          Deploy Files
+        </Button>
+        {deploying && <CircularProgress color="secondary" size={20} />}
+        <Error text={error} />
+      </Toolbar>
+    );
+  }
 
   return (
-    <div>
-      <Header />
+    <Page>
       <Content
         title={`Module: ${module.name}`}
-        ActionComponent={
-          <IconButton color="primary" aria-label="Edit" onClick={editHandler}>
-            <EditIcon />
-          </IconButton>
-        }
+        ActionComponents={ModuleActions}
       >
         <ModuleInfo module={module} />
-        {hasUnprocessedFile && (
-          <div className="module-actions-container">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={deployFilesHandler}
-              disabled={deploying}
-            >
-              Deploy Files
-            </Button>
-            <Separator />
-            {deploying && <CircularProgress color="secondary" size={20} />}
-            {error && <Error text={error} />}
-          </div>
-        )}
-        <FileTable
+        {fileActions}
+        <ModuleFileTable
           files={moduleFiles}
           onDeploy={deployFilesHandler}
           deploying={deploying}
         />
       </Content>
-    </div>
+    </Page>
   );
 };
 

@@ -1,30 +1,56 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
+import { makeStyles } from "@material-ui/core/styles";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
-import HomeIcon from "@material-ui/icons/Home";
+import HomeIcon from "@material-ui/icons/HomeRounded";
+import Container from "@material-ui/core/Container";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1,
+  },
+  homeButton: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+  companyName: {
+    padding: "0.5em",
+  },
+}));
 
 const Header = (props) => {
-
+  const classes = useStyles();
   const history = useHistory();
-
   const homeHandler = () => {
-    history.replace("/")  
-  }
+    history.replace("/");
+  };
 
-  return <div>
-    <div className="header">
-      <div className="header-company">
-        <div className="header-company-title">Rameses Systems Inc</div>
-      </div>
-      <div className="header-separtor"/>
-      <div className="header-title-container">
-        <div className="header-title">Database Migration</div>
-        <IconButton onClick={homeHandler}>
-          <HomeIcon  style={{color: "white" }}/>
-        </IconButton>
-      </div>
+  return (
+    <div className={classes.root}>
+      <Container className={classes.companyName}>
+        <Typography>Rameses Systems Inc.</Typography>
+      </Container>
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton
+            className={classes.homeButton}
+            onClick={homeHandler}
+            color="inherit"
+          >
+            <HomeIcon />
+          </IconButton>
+          <Typography variant="h6" className={classes.title}>
+            Database Migration
+          </Typography>
+        </Toolbar>
+      </AppBar>
     </div>
-  </div>
+  );
 };
 
 export default Header;

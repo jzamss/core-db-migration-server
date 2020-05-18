@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
+import IconButton from "@material-ui/core/IconButton";
 import LinearProgress from "@material-ui/core/LinearProgress";
-import Toolbar from "@material-ui/core/Toolbar";
 import RefreshIcon from "@material-ui/icons/Refresh";
 
-import Page from "../components/Page";
+import Header from "../components/Header";
 import Content from "../components/Content";
-import Action from "../components/Action";
+import ModuleItem from "../components/ModuleItem";
 import Error from "../components/Error";
-
-import ModuleItem from "./components/ModuleItem";
 
 import * as api from "../api";
 
@@ -29,14 +27,14 @@ const HomeScreen = (props) => {
     } catch (err) {
       setError(err);
     }
-  };
+  }
 
   const buildModulesHandler = () => {
     setError(null);
     setLoading(true);
     buildModules().then(() => {
       setLoading(false);
-    });
+    })
   };
 
   useEffect(() => {
@@ -47,27 +45,43 @@ const HomeScreen = (props) => {
     }
   }, []);
 
-  const Actions = (
-    <Toolbar variant="dense">
-      <Action
-        color="primary"
-        onClick={buildModulesHandler}
-        Icon={RefreshIcon}
-      />
-    </Toolbar>
-  );
+
+  let components;
+  if (error) {
+    components = <Error text={error} />
+  }
+  else if (loading) {
+    components = <LinearProgress color="secondary" />;
+  } else if (modules.length > 0) {
+    components = modules.map((mod) => <ModuleItem key={mod.name} module={mod} />);
+  } else {
+    components = (
+      <div>
+        <span>No available modules.</span>
+      </div>
+    );
+  }
 
   return (
-    <Page>
-      <Content title="Modules" ActionComponents={Actions}>
-        <Error text={error} />
-        {loading && <LinearProgress color="secondary" />}
-        <Error text={modules.length === 0 ? "No available modules." : null} />
-        {modules.map((mod) => (
-          <ModuleItem key={mod.name} module={mod} />
-        ))}
+    <div>
+      <Header />
+      <Content
+        title="Modules"
+        ActionComponent={
+          !loading && (
+            <IconButton
+              color="primary"
+              aria-label="Build Modules"
+              onClick={buildModulesHandler}
+            >
+              <RefreshIcon />
+            </IconButton>
+          )
+        }
+      >
+        {components}
       </Content>
-    </Page>
+    </div>
   );
 };
 

@@ -1,11 +1,11 @@
 import React from "react";
+import Typography from "@material-ui/core/Typography";
 
 const Error = ({ text }) => {
-  return (
-    <div>
-      <span style={{ color: "red" }}>{text}</span>
-    </div>
-  );
+  if ( text ) {
+    return <Typography style={{ color: "red" }}>{text}</Typography>;
+  }
+  return null;
 };
 
 export default Error;

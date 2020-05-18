@@ -1,6 +1,8 @@
 import React from "react";
 import { withStyles, makeStyles } from "@material-ui/core/styles";
+import Container from "@material-ui/core/Container";
 import Table from "@material-ui/core/Table";
+import Typography from "@material-ui/core/Typography";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
@@ -12,8 +14,9 @@ import ErrorIcon from "@material-ui/icons/Error";
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
-    backgroundColor: "#5f9ea0",
+    backgroundColor: theme.palette.primary.light,
     color: theme.palette.common.white,
+    width: props => props.width || null,
   },
   body: {
     fontSize: 14,
@@ -24,6 +27,10 @@ const useStyles = makeStyles({
   table: {
     minWidth: 650,
   },
+  moduleName: {
+    fontSize: "1.25em",
+    paddingTop: "10px"
+  },
 });
 
 const ModuleTable = ({ file, showTitle }) => {
@@ -32,14 +39,14 @@ const ModuleTable = ({ file, showTitle }) => {
 
   return (
     <TableContainer component={Paper}>
-      {showTitle && <h3>{name}</h3>}
-      <Table className={classes.table} size="small" aria-label="a dense table">
+      {showTitle && <Typography className={classes.moduleName}>{name}</Typography>}
+      <Table className={classes.table} size="small">
         <TableHead>
           <TableRow>
             <StyledTableCell>File Name</StyledTableCell>
-            <StyledTableCell>Date Filed</StyledTableCell>
-            <StyledTableCell>Error</StyledTableCell>
-            <StyledTableCell>State</StyledTableCell>
+            <StyledTableCell width="250px">Date Filed</StyledTableCell>
+            <StyledTableCell width="300px">Error</StyledTableCell>
+            <StyledTableCell width="10px">State</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -72,14 +79,14 @@ const ModuleTable = ({ file, showTitle }) => {
   );
 };
 
-const FileTable = ({ files }) => {
+const ModuleFileTable = ({ files }) => {
   return (
-    <div style={{ paddingTop: 10 }}>
+    <Container>
       {files.map((file) => (
         <ModuleTable key={file.name} file={file} showTitle={files.length > 1}/>
       ))}
-    </div>
+    </Container>
   );
 };
 
-export default FileTable;
+export default ModuleFileTable;

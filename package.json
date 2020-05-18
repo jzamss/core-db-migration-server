@@ -20,7 +20,8 @@
     "mssql": "^6.2.0",
     "mysql": "github:mysqljs/mysql",
     "node-fetch": "^2.6.0",
-    "redis": "^3.0.2"
+    "redis": "^3.0.2",
+    "styled-components": "^5.1.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"
