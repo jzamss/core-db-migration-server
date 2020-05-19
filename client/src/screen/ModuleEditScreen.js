@@ -1,13 +1,17 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import jsonFormat from "json-format";
 import { makeStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import TextareaAutosize from "@material-ui/core/TextareaAutosize";
+import Toolbar from "@material-ui/core/Toolbar";
+import CancelIcon from "@material-ui/icons/Cancel";
+import SaveIcon from "@material-ui/icons/Save";
 
-import Header from "../components/Header";
+import Action from "../components/Action";
 import Content from "../components/Content";
+import Error from "../components/Error";
+import Page from "../components/Page";
 
 import * as api from "../api";
 
@@ -21,12 +25,21 @@ const useStyles = makeStyles((theme) => ({
       margin: theme.spacing(1),
     },
   },
+  button: {
+    margin: theme.spacing(1),
+  },
+  formInfoContainer : {
+    marginLeft: 15,
+    marginRight: 15,
+    display: "flex",
+    flexDirection: "column",
+  }
 }));
 
-const formatConf = conf => {
+const formatConf = (conf) => {
   if (!conf) return conf;
-  return jsonFormat(conf, {type: 'space', size: 2});
-}
+  return jsonFormat(conf, { type: "space", size: 2 });
+};
 
 const ModuleEditScreen = (props) => {
   const initialModule = useLocation().state.module;
@@ -74,9 +87,24 @@ const ModuleEditScreen = (props) => {
     });
   };
 
+  const Actions = (
+    <Toolbar variant="dense" disableGutters={true}>
+      <Action
+        title="Cancel"
+        onClick={cancelHandler}
+        startIcon={<CancelIcon />}
+      />
+      <Action
+        title="Save"
+        type="submit"
+        color="secondary"
+        startIcon={<SaveIcon />}
+      />
+    </Toolbar>
+  );
+
   return (
-    <div>
-      <Header />
+    <Page>
       <Content title={`Module: ${module.name}`}>
         <form
           className={classes.root}
@@ -84,10 +112,11 @@ const ModuleEditScreen = (props) => {
           autoComplete="off"
           onSubmit={submitHandler}
         >
-          <div className="module-edit-form">
+          {Actions}
+          <div className={classes.formInfoContainer}>
             <TextField
               id="name"
-              label="Name"
+              label="Module Name"
               defaultValue={module.name}
               InputProps={{ readOnly: true }}
             />
@@ -98,6 +127,7 @@ const ModuleEditScreen = (props) => {
               value={module.dbname}
               onChange={(event) => inputChangeHandler(event)}
             />
+            <Error text={confError}/>
             <TextareaAutosize
               id="conf"
               aria-label="minimum height"
@@ -107,30 +137,10 @@ const ModuleEditScreen = (props) => {
               value={confStr}
               onChange={(event) => inputChangeHandler(event)}
             />
-            {confError && (
-              <span
-                style={{
-                  color: "red",
-                  fontSize: "small",
-                  marginTop: "5px",
-                  marginBottom: "10px",
-                }}
-              >
-                {confError}
-              </span>
-            )}
-            <div className={classes.root}>
-              <Button variant="contained" onClick={cancelHandler}>
-                Cancel
-              </Button>
-              <Button type="submit" variant="contained" color="primary">
-                Save
-              </Button>
-            </div>
           </div>
         </form>
       </Content>
-    </div>
+    </Page>
   );
 };
 

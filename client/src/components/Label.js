@@ -4,8 +4,6 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 
-import "./Component.css";
-
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -16,7 +14,8 @@ const useStyles = makeStyles((theme) => ({
   },
   labelValue: {
     fontSize: "medium",
-    borderBottom: "1px solid lightgray",
+    borderBottom: "1px solid",
+    borderBottomColor: theme.palette.primary.light,
     minWidth: "300px"
   }
 }));

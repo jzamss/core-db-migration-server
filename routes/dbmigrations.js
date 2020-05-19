@@ -7,6 +7,7 @@ const api = require("../api/rameses-db-migration");
 router.get("/build", async (req, res) => {
   try {
     console.log("get build");
+    await api.loadModules();
     await api.buildModules();
     res.json({status: 'ok'});
   } catch (error) {
@@ -25,19 +26,18 @@ router.get("/build/:moduleId", async (req, res) => {
   }
 });
 
-router.post("/build/:moduleId", async (req, res) => {
-  const { module } = req.body;
-  try {
-    await api.buildModule(module);
-    res.json({status: 'ok'});
-  } catch (error) {
-    res.json({status: "error", error})
-  }
+const getModules = async (res) => {
+  const modules = await api.getModules();
+  return await res.json(modules);
+}
+
+router.get("/reload", async (req, res) => {
+  await api.loadModules();
+  return await getModules(res);
 });
 
 router.get("/modules", async (req, res) => {
-  const modules = await api.getModules();
-  return await res.json(modules);
+  return await getModules(res);
 });
 
 router.get("/modules/:moduleId", async (req, res) => {

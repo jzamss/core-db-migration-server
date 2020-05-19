@@ -4,9 +4,18 @@ const redis = require("redis");
 
 const cache = redis.createClient(global.gConfig.redis_url);
 
+cache.on("connect", () => {
+  log.info("Cache successfully started")
+})
+
+cache.on("reconnecting", () => {
+  log.info("Cache is restarting")
+})
+
 cache.on("error", err => {
-  log.err(`Redis encountered error: ${err}`);
+  log.err(`Cache encountered error: ${err}`);
 });
+
 
 const getAsync = promisify(cache.get).bind(cache);
 const setAsync = promisify(cache.set).bind(cache);

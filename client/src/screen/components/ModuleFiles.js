@@ -15,7 +15,7 @@ import ErrorIcon from "@material-ui/icons/Error";
 const StyledTableCell = withStyles((theme) => ({
   head: {
     backgroundColor: theme.palette.primary.light,
-    color: theme.palette.common.white,
+    color: theme.palette.common.black,
     width: props => props.width || null,
   },
   body: {
@@ -79,7 +79,7 @@ const ModuleTable = ({ file, showTitle }) => {
   );
 };
 
-const ModuleFileTable = ({ files }) => {
+const ModuleFiles = ({ files }) => {
   return (
     <Container>
       {files.map((file) => (
@@ -89,4 +89,4 @@ const ModuleFileTable = ({ files }) => {
   );
 };
 
-export default ModuleFileTable;
+export default ModuleFiles;

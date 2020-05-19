@@ -4,6 +4,17 @@ const log = {
   err: (arg) => console.log("[ERROR]", arg),
 }
 
+export const reloadModules = async () => {
+  const res = await fetch("/dbmigrations/reload")
+  if (res.ok) {
+    return res.json();
+  } else {
+    const msg = 'Unable to reload modules';
+    log.err(`Status: ${res.status}. ${msg}`);
+    throw msg;
+  }
+};
+
 export const getModules = async () => {
   const res = await fetch("/dbmigrations/modules")
   if (res.ok) {
@@ -49,15 +60,7 @@ export const saveModule = async module => {
 }
 
 export const buildModules = async () => {
-  const res = await fetch(`/dbmigrations/build`, {
-    method: 'POST',
-    mode: 'cors',
-    cache: 'no-cache',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  });
+  const res = await fetch(`/dbmigrations/build`);
 
   if (res.ok) {
     return await getModules();
@@ -69,17 +72,7 @@ export const buildModules = async () => {
 }
 
 export const buildModule = async (module) => {
-  const res = await fetch(`/dbmigrations/build/${module.name}`, {
-    method: 'POST',
-    mode: 'cors',
-    cache: 'no-cache',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({module}),
-  });
-
+  const res = await fetch(`/dbmigrations/build/${module.name}`);
   if (!res.ok) {
     const msg = `Error deploying scripts for ${module.name}.`;
     log.err(`Status: ${res.status}. ${msg}`);

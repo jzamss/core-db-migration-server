@@ -18,8 +18,12 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
-  companyName: {
-    padding: "0.5em",
+  company: {
+    background: theme.palette.common.black,
+    color: theme.palette.common.white,
+    fontSize: 14,
+    padding: 5, 
+    paddingLeft: 15,
   },
 }));
 
@@ -32,9 +36,7 @@ const Header = (props) => {
 
   return (
     <div className={classes.root}>
-      <Container className={classes.companyName}>
-        <Typography>Rameses Systems Inc.</Typography>
-      </Container>
+      <Typography className={classes.company}>Rameses Systems Inc.</Typography>
       <AppBar position="static">
         <Toolbar>
           <IconButton

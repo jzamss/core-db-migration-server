@@ -8,8 +8,7 @@ import Content from "../components/Content";
 import Action from "../components/Action";
 import Error from "../components/Error";
 
-import ModuleItem from "./components/ModuleItem";
-
+import ModuleItems from "./components/ModuleItems";
 import * as api from "../api";
 
 const HomeScreen = (props) => {
@@ -22,37 +21,40 @@ const HomeScreen = (props) => {
     setModules(modules);
   };
 
-  const buildModules = async () => {
+  const reloadModules = async () => {
     try {
-      const modules = await api.buildModules();
+      const modules = await api.reloadModules();
       setModules(modules);
     } catch (err) {
       setError(err);
     }
   };
 
-  const buildModulesHandler = () => {
+  const reloadModulesHandler = () => {
     setError(null);
     setLoading(true);
-    buildModules().then(() => {
+    reloadModules().then(() => {
       setLoading(false);
     });
   };
 
   useEffect(() => {
     try {
+      console.log("useeffect getmodules ")
       getModules();
     } catch (err) {
       console.log(err);
     }
   }, []);
 
+
   const Actions = (
     <Toolbar variant="dense">
       <Action
-        color="primary"
-        onClick={buildModulesHandler}
-        Icon={RefreshIcon}
+        title="Reload"
+        color="secondary"
+        onClick={reloadModulesHandler}
+        startIcon={<RefreshIcon />}
       />
     </Toolbar>
   );
@@ -62,10 +64,8 @@ const HomeScreen = (props) => {
       <Content title="Modules" ActionComponents={Actions}>
         <Error text={error} />
         {loading && <LinearProgress color="secondary" />}
-        <Error text={modules.length === 0 ? "No available modules." : null} />
-        {modules.map((mod) => (
-          <ModuleItem key={mod.name} module={mod} />
-        ))}
+        <Error text={!loading && !error && modules.length === 0 ? "No available modules." : null} />
+        <ModuleItems modules={modules}/>
       </Content>
     </Page>
   );

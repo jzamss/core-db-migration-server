@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import Button from "@material-ui/core/Button";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
+import Container from "@material-ui/core/Container"
 import EditIcon from "@material-ui/icons/Edit";
+import Toolbar from "@material-ui/core/Toolbar";
 
-import Page from "../components/Page";
 import Action from "../components/Action";
 import Content from "../components/Content";
-import Separator from "../components/Separator";
 import Error from "../components/Error";
+import Label from "../components/Label";
+import Page from "../components/Page";
 
-import ModuleInfo from "./components/ModuleInfo";
-import ModuleFileTable from "./components/ModuleFileTable";
+import ModuleFiles from "./components/ModuleFiles";
 
 import * as api from "../api";
 import { CircularProgress } from "@material-ui/core";
@@ -64,7 +63,12 @@ const ModuleScreen = (props) => {
 
   const ModuleActions = (
     <Toolbar variant="dense">
-      <Action color="primary" onClick={editHandler} Icon={EditIcon} />
+      <Action
+        title="Edit"
+        color="secondary"
+        onClick={editHandler}
+        startIcon={<EditIcon />}
+      />
     </Toolbar>
   );
 
@@ -95,15 +99,22 @@ const ModuleScreen = (props) => {
     );
   }
 
+  const conf = JSON.stringify(module.conf);
+
   return (
     <Page>
       <Content
         title={`Module: ${module.name}`}
         ActionComponents={ModuleActions}
       >
-        <ModuleInfo module={module} />
+        <Container>
+          <Label caption="Name:" width="300px" value={module.name} />
+          <Label caption="Database:" value={module.dbname} />
+          <Label caption="Conf (json):" value={conf} />
+        </Container>
+        {/* <ModuleInfo module={module} /> */}
         {fileActions}
-        <ModuleFileTable
+        <ModuleFiles
           files={moduleFiles}
           onDeploy={deployFilesHandler}
           deploying={deploying}

@@ -1,12 +1,26 @@
 import React from "react";
-import IconButton from "@material-ui/core/IconButton";
+import Button from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
 
+const useStyles = makeStyles((theme) => ({
+  button: {
+    margin: (props) => props.margin || theme.spacing(1),
+  },
+}));
 
-const Action = ({color, onClick, Icon}) => {
+const Action = (props) => {
+  const classes = useStyles();
+
   return (
-    <IconButton color={color} onClick={onClick}>
-      <Icon />
-    </IconButton>
+    <Button
+      className={classes.button}
+      variant="contained"
+      color="primary"
+      size="small"
+      {...props}
+    >
+      {props.title}
+    </Button>
   );
 };
 
