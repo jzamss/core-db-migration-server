@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server",
+    "start": "env NODE_ENV=production node server",
+    "start-dev": "node server",
     "start-build": "npm run build-client && node server",
     "start-local": "node server",
     "build-client": "cd client && npm run build && cd ..",
