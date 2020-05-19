@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server",
+    "start": "env NODE_ENV=production node server",
+    "start-dev": "node server",
     "start-build": "npm run build-client && node server",
     "start-local": "node server",
     "build-client": "cd client && npm run build && cd ..",
@@ -18,7 +19,7 @@
     "json-format": "^1.0.1",
     "lodash": "^4.17.15",
     "mssql": "^6.2.0",
-    "mysql": "github:mysqljs/mysql",
+    "mysql": "^2.18.1",
     "node-fetch": "^2.6.0",
     "redis": "^3.0.2",
     "styled-components": "^5.1.0"
