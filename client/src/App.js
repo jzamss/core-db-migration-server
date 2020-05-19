@@ -14,10 +14,10 @@ function App() {
           <Route exact path="/">
             <HomeScreen />
           </Route>
-          <Route path="/modules/:moduleId">
+          <Route exact path="/modules/:moduleId">
             <ModuleScreen />
           </Route>
-          <Route path="/module/edit/:moduleId">
+          <Route path="/modules/:moduleId/edit">
             <ModuleEditScreen />
           </Route>
         </Switch>

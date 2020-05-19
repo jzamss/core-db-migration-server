@@ -13,6 +13,7 @@ app.use(bodyParser.json());
 
 /* client */
 app.use(express.static(path.join(__dirname, "client/build")));
+app.use(express.static("public"));
 
 /* migration routes */
 const dbmigrations = require("./routes/dbmigrations");

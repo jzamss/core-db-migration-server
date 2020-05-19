@@ -6,7 +6,6 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import HomeIcon from "@material-ui/icons/HomeRounded";
-import Container from "@material-ui/core/Container";
 
 const useStyles = makeStyles((theme) => ({
   root: {

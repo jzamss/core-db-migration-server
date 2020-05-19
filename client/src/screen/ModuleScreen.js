@@ -39,7 +39,7 @@ const ModuleScreen = (props) => {
   let history = useHistory();
   const editHandler = () => {
     history.push({
-      pathname: `/module/edit/${module.name}`,
+      pathname: `/modules/${module.name}/edit`,
       state: { module },
     });
   };

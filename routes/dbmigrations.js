@@ -1,12 +1,21 @@
+const path = require("path");
+const fs = require("fs");
+
 const express = require("express");
 const router = express.Router();
 
 const api = require("../api/rameses-db-migration");
+const util = require("../api/rameses-util");
 
+
+router.get("/help", async (req, res) => {
+  const mdFileName = path.join(__dirname, "..", "README.md");
+  const md = fs.readFileSync(mdFileName);
+  res.send(util.mdToHtml(md.toString()));
+});
 
 router.get("/build", async (req, res) => {
   try {
-    console.log("get build");
     await api.loadModules();
     await api.buildModules();
     res.json({status: 'ok'});
