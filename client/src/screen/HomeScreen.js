@@ -40,7 +40,6 @@ const HomeScreen = (props) => {
 
   useEffect(() => {
     try {
-      console.log("useeffect getmodules ")
       getModules();
     } catch (err) {
       console.log(err);
@@ -52,7 +51,7 @@ const HomeScreen = (props) => {
     <Toolbar variant="dense">
       <Action
         title="Reload"
-        color="secondary"
+        color="primary"
         onClick={reloadModulesHandler}
         startIcon={<RefreshIcon />}
       />

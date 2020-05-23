@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const dotenv = require("dotenv");
 
 const showdown = require("showdown");
 const converter = new showdown.Converter();
@@ -68,8 +69,6 @@ const findFiles = (dir, filter = (file) => true) => {
   return files;
 };
 
-
-
 const scanFiles = dir => {
   return new Promise((resolve, reject) => {
     fs.readdir(dir, { withFileTypes: true }, (err, files) => {
@@ -82,6 +81,42 @@ const scanFiles = dir => {
   });
 }
 
+
+const interpolateValues = (env) => {
+  let pass = false;
+  do {
+    pass = false;
+    for (let key in env) {
+      if (env.hasOwnProperty(key)) {
+          let value = env[key];
+          const matches = value.match(/\${(.+?)}/i);
+          if (matches && matches.length >= 2) {
+            const newValue = env[matches[1]];
+            if ( ! /\${.+}/i.test(newValue)) {
+              env[key] = value.replace(matches[0], newValue);
+              pass = true;
+            }
+          }
+      }
+    }
+  } while (pass);
+}
+
+
+const parseEnvFile = envFile => {
+  let conf = {};
+  if (envFile) {
+    try {
+      conf = dotenv.parse(fs.readFileSync(envFile));
+      interpolateValues(conf);
+    } catch (err) {
+      console.log(`${err}`);
+    }
+  }
+  return conf;
+}
+
+
 module.exports = {
   findDirs,
   findFiles,
@@ -89,5 +124,6 @@ module.exports = {
   isFileEqualExtension,
   log,
   scanFiles,
-  mdToHtml
+  mdToHtml,
+  parseEnvFile
 };

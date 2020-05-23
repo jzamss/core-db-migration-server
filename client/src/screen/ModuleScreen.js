@@ -2,10 +2,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import Button from "@material-ui/core/Button";
 import Container from "@material-ui/core/Container"
-import EditIcon from "@material-ui/icons/Edit";
+import SettingsIcon from "@material-ui/icons/Settings";
 import Toolbar from "@material-ui/core/Toolbar";
+import RefreshIcon from "@material-ui/icons/Refresh";
 
 import Action from "../components/Action";
+import Confirm from "../components/Confirm";
 import Content from "../components/Content";
 import Error from "../components/Error";
 import Label from "../components/Label";
@@ -21,7 +23,9 @@ const ModuleScreen = (props) => {
   const [module, setModule] = useState(initialModule);
   const [moduleFiles, setModuleFiles] = useState([]);
   const [deploying, setDeploying] = useState(false);
+  const [reloading, setReloading] = useState(false);
   const [error, setError] = useState();
+  const [confirmDeploy, setConfirmDeploy] = useState(false);
 
   const loadFiles = useCallback(async () => {
     const moduleFiles = await api.getModuleFiles(module);
@@ -37,12 +41,30 @@ const ModuleScreen = (props) => {
   }, []);
 
   let history = useHistory();
-  const editHandler = () => {
+  const settingHandler = () => {
     history.push({
-      pathname: `/modules/${module.name}/edit`,
+      pathname: `/modules/${module.name}/setting`,
       state: { module },
     });
   };
+
+
+  const reloadModule = async () => {
+    try {
+      await api.reloadModule(module);
+      await loadFiles();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  const reloadHandler = () => {
+    setError(null);
+    setReloading(true);
+    reloadModule().then(() => {
+      setReloading(false);
+    });
+  }
 
   const deployFiles = async () => {
     try {
@@ -54,21 +76,39 @@ const ModuleScreen = (props) => {
   };
 
   const deployFilesHandler = () => {
+    setConfirmDeploy(false);
     setError(null);
     setDeploying(true);
     deployFiles().then(() => {
       setDeploying(false);
     });
   };
+  
+  const confirmDeployHandler = () => {
+    setConfirmDeploy(true);
+  };
+
+  const closeConfirmHandler = () => {
+    setConfirmDeploy(false);
+  }
+
+  console.log("RELOADING", reloading);
 
   const ModuleActions = (
     <Toolbar variant="dense">
       <Action
-        title="Edit"
-        color="secondary"
-        onClick={editHandler}
-        startIcon={<EditIcon />}
+        title="Settings"
+        color="primary"
+        onClick={settingHandler}
+        startIcon={<SettingsIcon />}
       />
+      <Action
+        title="Reload"
+        color="primary"
+        onClick={reloadHandler}
+        startIcon={<RefreshIcon />}
+      />
+      {reloading && <CircularProgress color="secondary" size={20} /> }
     </Toolbar>
   );
 
@@ -87,8 +127,8 @@ const ModuleScreen = (props) => {
       <Toolbar>
         <Button
           variant="contained"
-          color="primary"
-          onClick={deployFilesHandler}
+          color="secondary"
+          onClick={confirmDeployHandler}
           disabled={deploying}
         >
           Deploy Files
@@ -107,18 +147,20 @@ const ModuleScreen = (props) => {
         title={`Module: ${module.name}`}
         ActionComponents={ModuleActions}
       >
+        <Confirm 
+          open={confirmDeploy} 
+          title="Database Migration"
+          message="Deploy migration files?"
+          onCancel={closeConfirmHandler}
+          onOk={deployFilesHandler}
+        />
         <Container>
           <Label caption="Name:" width="300px" value={module.name} />
           <Label caption="Database:" value={module.dbname} />
-          <Label caption="Conf (json):" value={conf} />
+          {/* <Label caption="Conf (json):" value={conf} /> */}
         </Container>
-        {/* <ModuleInfo module={module} /> */}
         {fileActions}
-        <ModuleFiles
-          files={moduleFiles}
-          onDeploy={deployFilesHandler}
-          deploying={deploying}
-        />
+        <ModuleFiles files={moduleFiles} />
       </Content>
     </Page>
   );

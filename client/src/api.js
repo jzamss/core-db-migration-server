@@ -79,3 +79,13 @@ export const buildModule = async (module) => {
     throw msg;
   }
 }
+
+export const reloadModule = async (module) => {
+  const res = await fetch(`/dbmigrations/reload/${module.name}`);
+  if (!res.ok) {
+    const msg = `Error reloading ${module.name}.`;
+    log.err(`Status: ${res.status}. ${msg}`);
+    throw msg;
+  }
+}
+
